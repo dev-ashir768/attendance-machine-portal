@@ -104,6 +104,18 @@ export default function AttendanceHistoryPage() {
         ),
       },
       {
+        header: 'Position & Dept',
+        id: 'position',
+        cell: (info) => (
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-slate-700">{info.row.original.designation?.name || 'No Designation'}</span>
+            <span className="text-xs text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded w-fit mt-1">
+              {info.row.original.department?.name || 'Unassigned'}
+            </span>
+          </div>
+        ),
+      },
+      {
         header: 'Status & Role',
         accessorKey: 'role',
         cell: (info) => {
@@ -116,10 +128,6 @@ export default function AttendanceHistoryPage() {
               >
                 {role}
               </Badge>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active</span>
-              </div>
             </div>
           );
         },

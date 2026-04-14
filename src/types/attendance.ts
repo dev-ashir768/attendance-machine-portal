@@ -42,6 +42,7 @@ export interface AllUsersAttendanceRecord {
   checkInTime: string | null;
   checkOutTime: string | null;
   durationMinutes: number | null;
+  departmentName: string;
   status: string;
 }
 

@@ -1,11 +1,29 @@
 export type UserRole = 'ADMIN' | 'EMPLOYEE';
 
+export interface Department {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Designation {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   username: string;
   name: string;
-  email: string;
+  email: string | null;
   role: UserRole;
+  departmentId: string | null;
+  designationId: string | null;
+  department?: Department | null;
+  designation?: Designation | null;
 }
 
 export interface AuthResponse {
@@ -21,3 +39,4 @@ export interface AuthState {
   setAuth: (user: User, token: string) => void;
   logout: () => void;
 }
+

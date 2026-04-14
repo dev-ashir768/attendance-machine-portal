@@ -26,13 +26,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, UserCircle2 } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 const userSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address').or(z.literal('')),
   password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
+  departmentId: z.string().optional().or(z.literal('')),
+  designationId: z.string().optional().or(z.literal('')),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
@@ -51,6 +53,43 @@ export default function UpdateUserModal({
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
+  // Fetch departments and designations
+  const { data: departments = [], error: deptError } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/api/v1/departments');
+        return response.data.data || [];
+      } catch (err) {
+        console.error('Dept Fetch Error:', err);
+        throw err;
+      }
+    },
+    enabled: isOpen,
+    staleTime: 0,
+  });
+
+  const { data: designations = [], error: desigError } = useQuery({
+    queryKey: ['designations'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/api/v1/designations');
+        return response.data.data || [];
+      } catch (err) {
+        console.error('Desig Fetch Error:', err);
+        throw err;
+      }
+    },
+    enabled: isOpen,
+    staleTime: 0,
+  });
+
+  useEffect(() => {
+    if (deptError) toast.error('Failed to load departments');
+    if (desigError) toast.error('Failed to load designations');
+  }, [deptError, desigError]);
+
+
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
     defaultValues: {
@@ -58,6 +97,8 @@ export default function UpdateUserModal({
       name: user.name || '',
       email: user.email || '',
       password: '',
+      departmentId: user.departmentId || '',
+      designationId: user.designationId || '',
     },
   });
 
@@ -68,6 +109,8 @@ export default function UpdateUserModal({
         name: user.name || '',
         email: user.email || '',
         password: '',
+        departmentId: user.departmentId || '',
+        designationId: user.designationId || '',
       });
     }
   }, [isOpen, user, form]);
@@ -75,10 +118,12 @@ export default function UpdateUserModal({
   const onSubmit = async (values: UserFormValues) => {
     setIsLoading(true);
     try {
-      // Clean up empty password before sending
+      // Clean up empty fields before sending
       const payload: any = { ...values };
       if (!payload.password) delete payload.password;
       if (!payload.email) delete payload.email;
+      if (!payload.departmentId) payload.departmentId = null;
+      if (!payload.designationId) payload.designationId = null;
 
       const response = await api.put(`/api/v1/users/${user.id}`, payload);
       
@@ -167,6 +212,52 @@ export default function UpdateUserModal({
                   )}
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="departmentId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-700 font-semibold">Department</FormLabel>
+                      <select
+                        {...field}
+                        className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-all"
+                      >
+                        <option value="">Select Department</option>
+                        {departments?.map((dept: any) => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </option>
+                        ))}
+                      </select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="designationId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-700 font-semibold">Designation</FormLabel>
+                      <select
+                        {...field}
+                        className="flex h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-all"
+                      >
+                        <option value="">Select Designation</option>
+                        {designations?.map((desig: any) => (
+                          <option key={desig.id} value={desig.id}>
+                            {desig.name}
+                          </option>
+                        ))}
+                      </select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="password"
@@ -217,3 +308,4 @@ export default function UpdateUserModal({
     </Dialog>
   );
 }
+
