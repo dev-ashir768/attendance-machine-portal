@@ -302,6 +302,7 @@ export default function AttendanceHistoryPage() {
         />
       )}
 
+
       <AllUsersAttendanceModal 
         isOpen={isAllUsersModalOpen}
         onClose={() => setIsAllUsersModalOpen(false)}

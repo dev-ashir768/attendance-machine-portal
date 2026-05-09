@@ -40,6 +40,8 @@ export default function AllUsersAttendanceModal({
   const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(new Date()));
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDeptId, setSelectedDeptId] = useState<string>('');
+  const [selectedGender, setSelectedGender] = useState<string>('');
+  const [selectedDesignationId, setSelectedDesignationId] = useState<string>('');
 
   // Fetch departments for filtering
   const { data: departments = [] } = useQuery({
@@ -51,13 +53,29 @@ export default function AllUsersAttendanceModal({
     enabled: isOpen,
   });
 
+  // Fetch designations for filtering
+  const { data: designations = [] } = useQuery({
+    queryKey: ['designations'],
+    queryFn: async () => {
+      const response = await api.get('/api/v1/designations');
+      return response.data.data;
+    },
+    enabled: isOpen,
+  });
+
   const { data: attendance = [], isLoading, refetch } = useQuery({
-    queryKey: ['all-users-attendance', startDate, endDate, selectedDeptId],
+    queryKey: ['all-users-attendance', startDate, endDate, selectedDeptId, selectedGender, selectedDesignationId],
     queryFn: async () => {
       const startStr = startDate ? format(startDate, 'yyyy-MM-dd') : '';
       const endStr = endDate ? format(endDate, 'yyyy-MM-dd') : '';
+      const params = new URLSearchParams();
+      if (startStr) params.append('startDate', startStr);
+      if (endStr) params.append('endDate', endStr);
+      if (selectedDeptId) params.append('departmentId', selectedDeptId);
+      if (selectedGender) params.append('gender', selectedGender);
+      if (selectedDesignationId) params.append('designationId', selectedDesignationId);
       const response = await api.get<AllUsersAttendanceResponse>(
-        `/api/v1/attendance/all-users-attendance?startDate=${startStr}&endDate=${endStr}&departmentId=${selectedDeptId}`
+        `/api/v1/attendance/all-users-attendance?${params.toString()}`
       );
       return response.data.data;
     },
@@ -116,7 +134,7 @@ export default function AllUsersAttendanceModal({
           <div className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500 opacity-20 group-hover:opacity-100 transition-opacity" />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
               {/* Date Column 1 */}
               <div className="space-y-2.5">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Range Start</label>
@@ -157,20 +175,6 @@ export default function AllUsersAttendanceModal({
                 </div>
               </div>
 
-              {/* Search Column */}
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Personnel Lookup</label>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
-                  <Input 
-                    placeholder="Type name or ID..." 
-                    className="pl-12 h-12 border-slate-200 bg-slate-50/50 focus:border-emerald-500 rounded-2xl font-bold placeholder:text-slate-300"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-
               {/* Action Column */}
               <div className="flex gap-3 h-12">
                 <Button 
@@ -189,6 +193,66 @@ export default function AllUsersAttendanceModal({
                   <FileSpreadsheet className="w-5 h-5" />
                 </Button>
               </div>
+            </div>
+
+            {/* Second Row: Gender, Designation, Search */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end mt-6 pt-6 border-t border-slate-100">
+              {/* Gender Filter */}
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Gender</label>
+                <div className="relative">
+                  <select
+                    value={selectedGender}
+                    onChange={(e) => setSelectedGender(e.target.value)}
+                    className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-slate-700 appearance-none cursor-pointer"
+                  >
+                    <option value="">All Genders</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Designation Filter */}
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Designation</label>
+                <div className="relative">
+                  <select
+                    value={selectedDesignationId}
+                    onChange={(e) => setSelectedDesignationId(e.target.value)}
+                    className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-slate-700 appearance-none cursor-pointer"
+                  >
+                    <option value="">All Designations</option>
+                    {designations.map((desig: any) => (
+                      <option key={desig.id} value={desig.id}>
+                        {desig.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Search Column */}
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Personnel Lookup</label>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+                  <Input 
+                    placeholder="Type name or ID..." 
+                    className="pl-12 h-12 border-slate-200 bg-slate-50/50 focus:border-emerald-500 rounded-2xl font-bold placeholder:text-slate-300"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
             </div>
           </div>
 

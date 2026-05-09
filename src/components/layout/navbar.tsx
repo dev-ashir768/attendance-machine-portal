@@ -3,7 +3,7 @@
 import { useAuthStore } from '@/store/auth-store';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { LogOut, User as UserIcon, LayoutDashboard, Settings2, Users2, Building2 } from 'lucide-react';
+import { LogOut, User as UserIcon, LayoutDashboard, Settings2, Users2, Building2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Navbar() {
@@ -21,6 +21,11 @@ export default function Navbar() {
       label: 'Personnel',
       href: '/attendance-history',
       icon: Users2,
+    },
+    {
+      label: 'Statistics',
+      href: '/statistics',
+      icon: TrendingUp,
     },
     {
       label: 'Management',

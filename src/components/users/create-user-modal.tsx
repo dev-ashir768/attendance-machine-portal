@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { User } from '@/types/auth';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +31,7 @@ const userSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address').or(z.literal('')),
-  password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
   departmentId: z.string().optional().or(z.literal('')),
   designationId: z.string().optional().or(z.literal('')),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional().nullable().or(z.literal('')),
@@ -40,17 +39,15 @@ const userSchema = z.object({
 
 type UserFormValues = z.infer<typeof userSchema>;
 
-interface UpdateUserModalProps {
-  user: User;
+interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function UpdateUserModal({
-  user,
+export default function CreateUserModal({
   isOpen,
   onClose,
-}: UpdateUserModalProps) {
+}: CreateUserModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -94,29 +91,29 @@ export default function UpdateUserModal({
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      username: user.username || '',
-      name: user.name || '',
-      email: user.email || '',
+      username: '',
+      name: '',
+      email: '',
       password: '',
-      departmentId: user.departmentId || '',
-      designationId: user.designationId || '',
-      gender: user.gender || '',
+      departmentId: '',
+      designationId: '',
+      gender: '',
     },
   });
 
   useEffect(() => {
     if (isOpen) {
       form.reset({
-        username: user.username || '',
-        name: user.name || '',
-        email: user.email || '',
+        username: '',
+        name: '',
+        email: '',
         password: '',
-        departmentId: user.departmentId || '',
-        designationId: user.designationId || '',
-        gender: user.gender || '',
+        departmentId: '',
+        designationId: '',
+        gender: '',
       });
     }
-  }, [isOpen, user, form]);
+  }, [isOpen, form]);
 
   const onSubmit = async (values: UserFormValues) => {
     setIsLoading(true);
@@ -129,17 +126,17 @@ export default function UpdateUserModal({
       if (!payload.designationId) payload.designationId = null;
       if (!payload.gender) payload.gender = null;
 
-      const response = await api.put(`/api/v1/users/${user.id}`, payload);
+      const response = await api.post(`/api/v1/users`, payload);
       
-      if (response.data.success || response.status === 200) {
-        toast.success('User updated successfully');
+      if (response.data.success || response.status === 201 || response.status === 200) {
+        toast.success('User created successfully');
         queryClient.invalidateQueries({ queryKey: ['users'] });
         onClose();
       } else {
-        toast.error(response.data.message || 'Update failed');
+        toast.error(response.data.message || 'Creation failed');
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Something went wrong while updating user');
+      toast.error(error.response?.data?.message || 'Something went wrong while creating user');
     } finally {
       setIsLoading(false);
     }
@@ -153,10 +150,10 @@ export default function UpdateUserModal({
             <UserCircle2 className="w-8 h-8" />
           </div>
           <DialogTitle className="text-2xl font-bold tracking-tight text-slate-900">
-            Edit User Profile
+            Create User
           </DialogTitle>
           <DialogDescription className="text-slate-500 text-base leading-relaxed">
-            Update user information and credentials. Leave password blank to keep current one.
+            Fill out the details to add a new user to the system.
           </DialogDescription>
         </DialogHeader>
 
@@ -268,7 +265,7 @@ export default function UpdateUserModal({
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-700 font-semibold">New Password (Optional)</FormLabel>
+                      <FormLabel className="text-slate-700 font-semibold">Password</FormLabel>
                       <FormControl>
                         <Input 
                           type="password" 
@@ -321,10 +318,10 @@ export default function UpdateUserModal({
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving Changes...
+                    Creating User...
                   </>
                 ) : (
-                  'Save Changes'
+                  'Create User'
                 )}
               </Button>
             </DialogFooter>

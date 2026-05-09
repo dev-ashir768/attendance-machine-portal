@@ -22,6 +22,7 @@ export interface User {
   role: UserRole;
   departmentId: string | null;
   designationId: string | null;
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | null;
   department?: Department | null;
   designation?: Designation | null;
 }
