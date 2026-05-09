@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import Navbar from '@/components/layout/navbar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Users2, Building2, Briefcase, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
+import { Users2, Building2, Briefcase, BarChart3, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -24,9 +24,9 @@ import {
 
 interface StatisticsData {
   totals: {
-    totalUsers: number;
-    totalDepartments: number;
-    totalDesignations: number;
+    users: number;
+    departments: number;
+    designations: number;
   };
   usersPerDepartment: Array<{
     departmentId: string;
@@ -122,7 +122,7 @@ export default function StatisticsPage() {
   const summaryCards = [
     {
       label: 'Total Users',
-      value: statistics?.totals.totalUsers ?? '—',
+      value: statistics?.totals.users ?? '—',
       icon: Users2,
       gradient: 'from-indigo-600 to-violet-700',
       shadowColor: 'shadow-indigo-200',
@@ -130,7 +130,7 @@ export default function StatisticsPage() {
     },
     {
       label: 'Total Departments',
-      value: statistics?.totals.totalDepartments ?? '—',
+      value: statistics?.totals.departments ?? '—',
       icon: Building2,
       gradient: 'from-emerald-600 to-teal-700',
       shadowColor: 'shadow-emerald-200',
@@ -138,7 +138,7 @@ export default function StatisticsPage() {
     },
     {
       label: 'Total Designations',
-      value: statistics?.totals.totalDesignations ?? '—',
+      value: statistics?.totals.designations ?? '—',
       icon: Briefcase,
       gradient: 'from-amber-500 to-orange-600',
       shadowColor: 'shadow-amber-200',
